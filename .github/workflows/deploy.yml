@@ -26,23 +26,29 @@ jobs:
     - name: Build the Angular app (client-side)
       run: |
         cd spinArrowApp
-        npm run build -- --configuration production --base-href /SpinGame/ --output-path=dist/spin-arrow-app
+        ng build --prod --output-path=dist/spin-arrow-app --base-href /SpinGame/
+
+    - name: List build output
+      run: ls -R ./spinArrowApp/dist/spin-arrow-app
 
     - name: Check for index.html in build output
       run: |
-        if [ -f spinArrowApp/dist/spin-arrow-app/index.html ]; then echo "index.html found"; else echo "index.html missing"; fi
+        if [ -f ./spinArrowApp/dist/spin-arrow-app/index.html ]; then
+          echo "index.html found";
+        else
+          echo "index.html missing";
+          exit 1; # Fail the workflow if index.html is missing
+        fi
 
-    - name: List build output
-      run: ls -R spinArrowApp/dist/spin-arrow-app
+    - name: Print current directory
+      run: pwd
+
+    - name: List files in dist
+      run: ls -la ./spinArrowApp/dist
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: spinArrowApp/dist/spin-arrow-app
-
-    - name: Check gh-pages content
-      run: |
-        git clone --branch gh-pages https://github.com/${{ github.repository }} gh-pages
-        ls -R gh-pages
-
+        publish_dir: ./spinArrowApp/dist/spin-arrow-app
+        publish_branch: gh-pages
