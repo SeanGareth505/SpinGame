@@ -26,7 +26,7 @@ jobs:
     - name: Build the Angular app (client-side)
       run: |
         cd spinArrowApp
-        ng build --prod --output-path=dist/spin-arrow-app --base-href /SpinGame/
+        npx ng build --prod --output-path=dist/spin-arrow-app --base-href /SpinGame/
 
     - name: List build output
       run: ls -R ./spinArrowApp/dist/spin-arrow-app
