@@ -1,0 +1,65 @@
+.question-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+    /* Full height to center vertically */
+    background-color: #1d1d1d;
+    /* Set background color */
+    position: relative;
+    /* For absolute positioning of the card */
+}
+
+.pointer-info {
+    background-color: #292929;
+    /* Background color for pointer info */
+    color: #fff;
+    /* Text color */
+    min-width: 30vw;
+    padding: 10px 20px;
+    /* Padding for the block */
+    border-radius: 8px;
+    /* Rounded corners */
+    margin-bottom: 20px;
+    /* Space between the info and question card */
+    font-size: 18px;
+    /* Adjust font size */
+    text-align: center;
+    /* Center the text */
+    border: 2px solid #ff6f61;
+}
+
+.question-card {
+    background-color: #292929;
+    /* Same as circle background */
+    border: 4px solid #ff6f61;
+    /* Same as circle border */
+    border-radius: 10px;
+    padding: 40px;
+    /* More padding for a larger card */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    color: #ff6f61;
+    /* Match text color to arrow color */
+    max-width: 800px;
+    /* Adjust max-width as needed */
+    width: 80%;
+    /* Make it responsive */
+    text-align: center;
+    position: relative;
+    /* Centering adjustment */
+}
+
+.question-text {
+    font-size: 24px;
+    /* Larger font size */
+    line-height: 1.5;
+    /* Improve readability */
+}
+
+.placeholder {
+    text-align: center;
+    font-size: 18px;
+    color: #fff;
+}

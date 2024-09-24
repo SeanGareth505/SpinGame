@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
+import { ViewQuestionComponent } from './view-question/view-question.component';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB9ReI8QdMrvsi0gIXlT2CkfFaKWR8ukOE",
@@ -22,7 +23,8 @@ const firebaseConfig = {
 @NgModule({
   declarations: [
     AppComponent,
-    ArrowSpinnerComponent
+    ArrowSpinnerComponent,
+    ViewQuestionComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,8 @@
+<div class="question-container">
+
+    <div class="question-card">
+        <h2 class="question-header" *ngIf="selectedQuestion">{{ selectedAsker }} must ask {{ selectedResponder }}:</h2>
+        <p class="question-text" *ngIf="selectedQuestion">{{ selectedQuestion }}</p>
+        <p class="question-header" *ngIf="!selectedQuestion">Waiting for the spin to complete...</p>
+    </div>
+</div>
