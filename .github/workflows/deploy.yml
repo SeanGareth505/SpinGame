@@ -33,7 +33,7 @@ jobs:
 
     - name: Check for index.html in build output
       run: |
-        if [ -f ./spinArrowApp/dist/spin-arrow-app/index.html ]; then
+        if [ -f ./spinArrowApp/dist/spin-arrow-app/browser/index.html ]; then
           echo "index.html found";
         else
           echo "index.html missing";
@@ -50,5 +50,5 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./spinArrowApp/dist/spin-arrow-app
+        publish_dir: ./spinArrowApp/dist/spin-arrow-app/browser
         publish_branch: gh-pages
