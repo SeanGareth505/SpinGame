@@ -46,12 +46,7 @@
               "src/styles.css"
             ],
             "scripts": [],
-            "baseHref": "/SpinGame/", 
-            "server": "src/main.server.ts",
-            "prerender": true,
-            "ssr": {
-              "entry": "server.ts"
-            }
+            "baseHref": "/SpinGame/"
           },
           "configurations": {
             "production": {
@@ -68,7 +63,7 @@
                 }
               ],
               "outputHashing": "all",
-              "baseHref": "/SpinGame/" 
+              "baseHref": "/SpinGame/"
             },
             "development": {
               "optimization": false,
