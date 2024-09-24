@@ -26,7 +26,7 @@ jobs:
     - name: Build the Angular app
       run: |
         cd spinArrowApp
-        npm run build -- --configuration production --base-href /spinArrowApp/
+        npm run build -- --configuration production --base-href /SpinGame/
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
