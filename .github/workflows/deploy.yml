@@ -26,9 +26,9 @@ jobs:
     - name: Build the Angular app (client-side)
       run: |
         cd spinArrowApp
-        npx ng build --output-path=dist/spin-arrow-app --base-href /SpinGame/ --configuration production
+        npx ng build --output-path=dist/spin-arrow-app --base-href /SpinGame/ --configuration production || { echo 'Build failed'; exit 1; }
 
-    - name: Check build output
+    - name: List build output
       run: ls -R ./spinArrowApp/dist
 
     - name: Check for index.html in build output
