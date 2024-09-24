@@ -23,10 +23,10 @@ jobs:
         cd spinArrowApp
         npm install
 
-    - name: Build the Angular app
+    - name: Build the Angular app (client-side)
       run: |
         cd spinArrowApp
-        npm run build -- --configuration production --base-href /SpinGame/
+        npm run build -- --output-path=dist/spin-arrow-app --base-href /SpinGame/ --configuration production
 
     - name: Check for index.html in build output
       run: |
