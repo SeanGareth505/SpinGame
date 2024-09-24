@@ -13,13 +13,10 @@ jobs:
     - name: Checkout the repository
       uses: actions/checkout@v3
 
-    - name: Change directory to spinArrowApp
-      run: cd spinArrowApp
-
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18.x'  # Updated to use Node.js 18.x
+        node-version: '18.x'
 
     - name: Install dependencies
       run: |
