@@ -46,7 +46,7 @@
               "src/styles.css"
             ],
             "scripts": [],
-            "baseHref": "/spin-arrow-app/", 
+            "baseHref": "/SpinGame/", 
             "server": "src/main.server.ts",
             "prerender": true,
             "ssr": {
@@ -68,13 +68,13 @@
                 }
               ],
               "outputHashing": "all",
-              "baseHref": "/spin-arrow-app/"
+              "baseHref": "/SpinGame/" 
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "baseHref": "/" 
+              "baseHref": "/"
             }
           },
           "defaultConfiguration": "production"

@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ArrowSpinnerComponent } from './arrow-spinner/arrow-spinner.component';
 import { ViewQuestionComponent } from './view-question/view-question.component';
-import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 const routes: Routes = [
   { path: '', redirectTo: '/spinner', pathMatch: 'full' },
