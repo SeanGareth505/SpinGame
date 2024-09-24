@@ -35,5 +35,5 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./spinArrowApp/dist/spin-arrow-app
+        publish_dir: spinArrowApp/dist/spin-arrow-app
         publish_branch: gh-pages
