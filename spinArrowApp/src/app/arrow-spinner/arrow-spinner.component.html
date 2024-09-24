@@ -1,0 +1,42 @@
+<div class="main-container">
+    <div class="input-section">
+        <div class="input-container">
+            <label for="nameInput">Enter Names: </label>
+            <input id="nameInput" [(ngModel)]="newName" placeholder="Add name" />
+            <button (click)="addName()">Add Name</button>
+        </div>
+
+        <div class="names-list">
+            <ul>
+                <li *ngFor="let name of names; let i = index">
+                    {{ name }}
+                    <button class="delete-button" (click)="deleteName(i)">Delete</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="circle-container">
+        <div class="spin-container">
+            <button (click)="spin()">Spin</button>
+        </div>
+
+        <div class="circle">
+            <div class="center-circle"></div>
+
+            <div class="arrow" [ngStyle]="{'transform': 'rotate(' + rotationDegrees + 'deg)'}"></div>
+
+            <div *ngFor="let name of names; let i = index" class="name-label" [ngStyle]="getDegreePosition(i, name)">
+                {{ name }}
+            </div>
+        </div>
+
+        <div class="question-container" *ngIf="selectedQuestion && selectedAsker && selectedResponder">
+            <p><strong>{{ selectedAsker }}</strong> must ask <strong>{{ selectedResponder }}</strong>:</p>
+            <p class="question-text">{{ selectedQuestion }}</p>
+        </div>
+        <div class="question-container" *ngIf="!selectedQuestion && !selectedAsker && !selectedResponder">
+            Spin stuff to get questions and stuff, also Astro is sexy
+        </div>
+    </div>
+</div>
