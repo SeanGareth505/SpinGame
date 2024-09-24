@@ -28,8 +28,8 @@ jobs:
         cd spinArrowApp
         npx ng build --output-path=dist/spin-arrow-app --base-href /SpinGame/ --configuration production
 
-    - name: List build output
-      run: ls -R ./spinArrowApp/dist/spin-arrow-app
+    - name: Check build output
+      run: ls -R ./spinArrowApp/dist
 
     - name: Check for index.html in build output
       run: |
