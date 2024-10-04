@@ -17,6 +17,8 @@ export class ArrowSpinnerComponent {
   selectedAsker: string = '';
   selectedResponder: string = '';
   newQuestion: string = ''; // Bind to input field
+  questionHistory: { [key: string]: string[] } = {}; // Updated to track questions per responder
+  isHistoryLoaded: boolean = false; // Flag to ensure questionHistory is loaded
 
   questions: string[] = [
     "What is your favorite hobby?",
@@ -37,13 +39,10 @@ export class ArrowSpinnerComponent {
     // Listen for updates to the 'currentSpin' document for real-time spin synchronization
     this.firestore.collection('spins').doc('currentSpin').valueChanges().subscribe((spin: any) => {
       if (spin) {
-        // If the rotationDegrees don't match, update the rotation immediately without animation
         if (spin.rotationDegrees !== this.rotationDegrees) {
-          // Instantly apply the final rotation for observing users (no animation)
           this.rotationDegrees = spin.rotationDegrees;
         }
 
-        // Synchronize the asker, responder, and question across all users
         this.selectedAsker = spin.asker;
         this.selectedResponder = spin.responder;
         this.selectedQuestion = spin.question;
@@ -53,27 +52,38 @@ export class ArrowSpinnerComponent {
     // Listen for updates to the 'names' collection to sync the names list
     this.firestore.collection('names').doc('currentNames').valueChanges().subscribe((data: any) => {
       if (data && data.names) {
-        this.names = data.names;  // Synchronize the names list across clients
+        this.names = data.names;
       }
     });
 
     // Listen for updates to the 'questions' collection to sync the questions list
     this.firestore.collection('questions').doc('currentQuestions').valueChanges().subscribe((data: any) => {
       if (data && data.questions) {
-        this.questions = data.questions;  // Synchronize the questions list across clients
+        this.questions = data.questions;
+      }
+    });
+
+    // Retrieve the question history from Firestore
+    this.firestore.collection('questionHistory').doc('history').valueChanges().subscribe((data: any) => {
+      console.log('data', data)
+      this.isHistoryLoaded = true; // Flag that questionHistory is now loaded
+      if (data && data.history) {
+        this.questionHistory = data.history; // Synchronize the question history across clients
+        console.log('this.isHistoryLoaded2222222', this.isHistoryLoaded)
+        console.log('questionHistory loaded:', this.questionHistory);
       }
     });
   }
 
   addQuestion() {
     if (this.newQuestion.trim()) {
-      this.questions.push(this.newQuestion); // Add to the local questions array
+      this.questions.push(this.newQuestion);
 
       // Optionally save to Firestore if you want persistence
       const questionsRef = this.firestore.collection('questions').doc('currentQuestions');
       questionsRef.set(
         { questions: firebase.firestore.FieldValue.arrayUnion(this.newQuestion) },
-        { merge: true } // Only adds to the array, without overwriting
+        { merge: true }
       )
         .then(() => {
           console.log('Question added to Firestore');
@@ -92,7 +102,7 @@ export class ArrowSpinnerComponent {
 
       namesRef.set(
         { names: firebase.firestore.FieldValue.arrayUnion(this.newName) },
-        { merge: true } // merge will ensure that it only adds to the existing array, not overwrite it
+        { merge: true }
       )
         .then(() => {
           console.log('Name added to Firestore');
@@ -111,7 +121,7 @@ export class ArrowSpinnerComponent {
     // Remove the name from the Firestore 'names' collection
     const namesRef = this.firestore.collection('names').doc('currentNames');
     namesRef.update({
-      names: firebase.firestore.FieldValue.arrayRemove(nameToDelete) // Remove the name from the array
+      names: firebase.firestore.FieldValue.arrayRemove(nameToDelete)
     })
       .then(() => {
         console.log('Name deleted from Firestore');
@@ -126,19 +136,15 @@ export class ArrowSpinnerComponent {
     const anglePerName = 360 / totalNames;
     const degree = anglePerName * index;
 
-    // Base radius for short names
     let radius = 300;
     const center = 250;
 
-    // Dynamically calculate name width
-    const textWidth = this.getTextWidth(name, '18px Arial'); // Calculate the width of the name in pixels
+    const textWidth = this.getTextWidth(name, '18px Arial');
 
-    // Adjust radius based on the name length
-    if (textWidth > 100) { // Arbitrary threshold; adjust based on your needs
-      radius += (textWidth - 100) / 2; // Move the name further out if it's longer
+    if (textWidth > 100) {
+      radius += (textWidth - 100) / 2;
     }
 
-    // Calculate position using the new radius
     const radian = (degree * Math.PI) / 180;
     const x = Math.cos(radian) * radius + center;
     const y = Math.sin(radian) * radius + center;
@@ -153,8 +159,8 @@ export class ArrowSpinnerComponent {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     if (context) {
-      context.font = font; // Set the desired font (same as in your CSS)
-      return context.measureText(text).width; // Get the width of the text in pixels
+      context.font = font;
+      return context.measureText(text).width;
     }
     return 0;
   }
@@ -164,88 +170,127 @@ export class ArrowSpinnerComponent {
   }
 
   spin() {
-    if (this.names.length > 1) {
-      let randomIndexAsker: number;
-      let randomIndexResponder: number;
-
-      do {
-        randomIndexAsker = Math.floor(Math.random() * this.names.length);
-      } while (this.previousIndex === randomIndexAsker);
-
-      this.previousIndex = randomIndexAsker;
-
-      const degreesPerName = 360 / this.names.length;
-      const targetRotation = degreesPerName * randomIndexAsker;
-
-      // Set total rotation to be at least 3 full spins before landing on the target
-      const totalRotationDegrees = (3 * 360) + targetRotation;
-
-      // Set a consistent spin duration for all clients
-      const spinDuration = 4000; // Spin for 4 seconds
-      const startRotation = this.rotationDegrees;
-
-      // Immediately broadcast the start of the spin to Firestore to synchronize across clients
-      this.firestore.collection('spins').doc('currentSpin').set({
-        rotationDegrees: startRotation + totalRotationDegrees,
-        asker: '',  // Clear asker until spin is complete
-        responder: '',  // Clear responder until spin is complete
-        question: ''  // Clear question until spin is complete
-      });
-
-      const start = performance.now();
-
-      const animateSpin = (currentTime: number) => {
-        const elapsed = currentTime - start;
-        const progress = Math.min(elapsed / spinDuration, 1);
-
-        const easedProgress = this.easeOutCubic(progress);
-
-        this.rotationDegrees = startRotation + (totalRotationDegrees * easedProgress);
-
-        if (progress < 1) {
-          // Continue spinning
-          requestAnimationFrame(animateSpin);
-        } else {
-          // After spin completes, select the asker, responder, and question
-          this.selectedAsker = this.names[randomIndexAsker];
-
-          do {
-            randomIndexResponder = Math.floor(Math.random() * this.names.length);
-          } while (
-            randomIndexResponder === randomIndexAsker ||
-            randomIndexResponder === this.previousResponder
-          );
-
-          this.selectedResponder = this.names[randomIndexResponder];
-          this.previousResponder = randomIndexResponder;
-
-          this.selectedQuestion = this.questions[Math.floor(Math.random() * this.questions.length)];
-
-          // Update Firestore with the final spin data (asker, responder, question)
-          this.firestore.collection('spins').doc('currentSpin').set({
-            rotationDegrees: this.rotationDegrees,  // Keep final rotation for others
-            asker: this.selectedAsker,
-            responder: this.selectedResponder,
-            question: this.selectedQuestion
-          })
-            .then(() => {
-              console.log('Final spin data updated in Firestore for synchronization.');
-            })
-            .catch((error) => {
-              console.error('Error updating final spin data: ', error);
-            });
-        }
-      };
-
-      // Start animation
-      requestAnimationFrame(animateSpin);
+    if (!this.isHistoryLoaded) {
+      console.error('Question history has not been loaded yet.');
+      return;
     }
+
+    console.log('this.names', this.names);
+
+    if (!this.names || this.names.length <= 1) {
+      console.error('Names array is either undefined or has insufficient members.');
+      return;
+    }
+
+    let randomIndexAsker: number;
+    let randomIndexResponder: number;
+
+    do {
+      randomIndexAsker = Math.floor(Math.random() * this.names.length);
+    } while (this.previousIndex === randomIndexAsker);
+
+    if (isNaN(randomIndexAsker)) {
+      console.error('randomIndexAsker generated NaN');
+      return;
+    }
+
+    this.previousIndex = randomIndexAsker;
+
+    const degreesPerName = 360 / this.names.length;
+    if (isNaN(degreesPerName)) {
+      console.error('degreesPerName is NaN');
+      return;
+    }
+
+    const targetRotation = degreesPerName * randomIndexAsker;
+    if (isNaN(targetRotation)) {
+      console.error('targetRotation is NaN');
+      return;
+    }
+
+    const totalRotationDegrees = (3 * 360) + targetRotation;
+
+    this.rotationDegrees = this.rotationDegrees || 0;
+    const startRotation = isNaN(this.rotationDegrees) ? 0 : this.rotationDegrees;
+
+    const finalRotationDegrees = startRotation + totalRotationDegrees;
+    if (isNaN(finalRotationDegrees)) {
+      console.error('Final rotationDegrees is NaN');
+      return;
+    }
+
+    const spinDuration = 4000;
+    const start = performance.now();
+
+    this.firestore.collection('spins').doc('currentSpin').set({
+      rotationDegrees: finalRotationDegrees,
+      asker: '',
+      responder: '',
+      question: ''
+    });
+
+    const animateSpin = (currentTime: number) => {
+      const elapsed = currentTime - start;
+      const progress = Math.min(elapsed / spinDuration, 1);
+      const easedProgress = this.easeOutCubic(progress);
+
+      this.rotationDegrees = startRotation + (totalRotationDegrees * easedProgress);
+
+      if (progress < 1) {
+        requestAnimationFrame(animateSpin);
+      } else {
+        this.selectedAsker = this.names[randomIndexAsker];
+
+        do {
+          randomIndexResponder = Math.floor(Math.random() * this.names.length);
+        } while (
+          randomIndexResponder === randomIndexAsker ||
+          randomIndexResponder === this.previousResponder
+        );
+
+        this.selectedResponder = this.names[randomIndexResponder];
+        this.previousResponder = randomIndexResponder;
+
+        this.selectedQuestion = this.questions[Math.floor(Math.random() * this.questions.length)];
+
+        // Update the question history for the selected responder
+        if (!this.questionHistory[this.selectedResponder]) {
+          this.questionHistory[this.selectedResponder] = []; // Initialize if not present
+        }
+        this.questionHistory[this.selectedResponder].push(this.selectedQuestion); // Add the selected question
+
+        // Optionally save the question history to Firestore
+        this.firestore.collection('questionHistory').doc('history').set(
+          { [this.selectedResponder]: firebase.firestore.FieldValue.arrayUnion(this.selectedQuestion) },
+          { merge: true }
+        )
+          .then(() => {
+            console.log('Question history updated in Firestore');
+          })
+          .catch((error) => {
+            console.error('Error updating question history: ', error);
+          });
+
+        // Final update to Firestore
+        this.firestore.collection('spins').doc('currentSpin').set({
+          rotationDegrees: this.rotationDegrees,
+          asker: this.selectedAsker,
+          responder: this.selectedResponder,
+          question: this.selectedQuestion
+        })
+          .then(() => {
+            console.log('Final spin data updated in Firestore for synchronization.');
+          })
+          .catch((error) => {
+            console.error('Error updating final spin data: ', error);
+          });
+      }
+    };
+
+    requestAnimationFrame(animateSpin);
   }
-
-
 
   easeOutCubic(t: number): number {
     return 1 - Math.pow(1 - t, 3);
   }
-
 }

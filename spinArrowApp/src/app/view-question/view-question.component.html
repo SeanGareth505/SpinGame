@@ -1,8 +1,28 @@
 <div class="question-container">
-
     <div class="question-card">
-        <h2 class="question-header" *ngIf="selectedQuestion">{{ selectedAsker }} must ask {{ selectedResponder }}:</h2>
+        <div style="margin-bottom: 2px;">
+            Total questions: {{questions.length}}
+        </div>
+
+        <div class="question-input-section">
+
+            <input id="questionInput" style="margin-left: 2px;" [(ngModel)]="newQuestion"
+                placeholder="Add a question" />
+            <button (click)="addQuestion()">Add Question</button>
+        </div>
+
+        <h2 class="question-header" *ngIf="selectedQuestion">
+            {{ selectedAsker }} must ask {{ selectedResponder }}:
+        </h2>
         <p class="question-text" *ngIf="selectedQuestion">{{ selectedQuestion }}</p>
         <p class="question-header" *ngIf="!selectedQuestion">Waiting for the spin to complete...</p>
+
+        <!-- Display the remaining question count -->
+        <p class="remaining-questions" *ngIf="remainingQuestions > 0">
+            Remaining questions for {{ selectedResponder }}: {{ remainingQuestions }}
+        </p>
+        <p class="remaining-questions" *ngIf="remainingQuestions === 0 && selectedResponder">
+            All questions have been asked for {{ selectedResponder }}!
+        </p>
     </div>
 </div>
