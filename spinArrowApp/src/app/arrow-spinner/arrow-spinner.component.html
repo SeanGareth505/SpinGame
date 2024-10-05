@@ -16,6 +16,7 @@
         </div>
     </div>
 
+
     <div class="circle-container">
         <div class="spin-container">
             <button (click)="spin()">Spin</button>
@@ -47,6 +48,14 @@
         <label for="questionInput">Enter a New Question:</label>
         <input id="questionInput" style="margin-left: 2px;" [(ngModel)]="newQuestion" placeholder="Add a question" />
         <button (click)="addQuestion()">Add Question</button>
+
+        <div class="controls">
+            <button (click)="markAllAsReadExceptOne()">Mark All as Read Except One</button>
+            <button (click)="markAllAsUnread()">Mark All as Unread</button>
+        </div>
+
+        <p>Remaining Questions: {{ remainingQuestions }}</p>
+
     </div>
 
 </div>
