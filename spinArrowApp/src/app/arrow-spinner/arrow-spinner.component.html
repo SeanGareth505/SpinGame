@@ -49,13 +49,11 @@
         <input id="questionInput" style="margin-left: 2px;" [(ngModel)]="newQuestion" placeholder="Add a question" />
         <button (click)="addQuestion()">Add Question</button>
 
-        <div class="controls">
-            <button (click)="markAllAsReadExceptOne()">Mark All as Read Except One</button>
-            <button (click)="markAllAsUnread()">Mark All as Unread</button>
-        </div>
-
         <p>Remaining Questions: {{ remainingQuestions }}</p>
 
     </div>
+
+    <input type="number" [(ngModel)]="manualDegree" placeholder="Enter degree to rotate" />
+    <button (click)="rotateToDegree()">Rotate to Degree</button>
 
 </div>
