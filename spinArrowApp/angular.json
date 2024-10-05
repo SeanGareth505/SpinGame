@@ -25,7 +25,7 @@
           "options": {
             "outputPath": "dist/spin-arrow-app",
             "index": "src/index.html",
-            "main": "src/main.ts",
+            "main": "src/main.ts",  // Corrected from "browser" to "main"
             "polyfills": [
               "zone.js"
             ],
@@ -53,13 +53,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1MB",
-                  "maximumError": "1.5MB"
+                  "maximumWarning": "1MB",  // Increased from 500kB
+                  "maximumError": "1.5MB"    // Increased from 1MB
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "5kB",
-                  "maximumError": "6kB"
+                  "maximumWarning": "5kB",   // Increased from 2kB
+                  "maximumError": "6kB"      // Increased from 4kB
                 }
               ],
               "outputHashing": "all",
