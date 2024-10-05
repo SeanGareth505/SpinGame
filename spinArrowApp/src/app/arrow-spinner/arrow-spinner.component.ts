@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
 
@@ -7,26 +7,13 @@ import firebase from 'firebase/compat/app';
   templateUrl: './arrow-spinner.component.html',
   styleUrls: ['./arrow-spinner.component.scss']
 })
-export class ArrowSpinnerComponent {
+export class ArrowSpinnerComponent implements OnInit {
   rotationDegrees: number = 0;
-  inputDegree: number = 0;  // New variable to hold the input degree value
-  newName: string = '';
-  names: string[] = [];
-  previousIndex: number | null = null;
-  previousResponder: number | null = null;
-  selectedQuestion: string = '';
-  selectedAsker: string = '';
-  selectedResponder: string = '';
-  newQuestion: string = '';
-  questionHistory: { [key: string]: string[] } = {};
-  usedQuestions: { [key: string]: boolean } = {};
-  isHistoryLoaded: boolean = false;
   spinning: boolean = false;
-  recentAskers: number[] = [];
+  newName: string = '';
+  newQuestion: string = '';
   manualDegree: number = 0;
-
-  recentResponders: number[] = [];
-
+  names: string[] = [];
   questions: string[] = [
     "What is your favorite hobby?",
     "What's the most interesting place you've visited?",
@@ -39,39 +26,49 @@ export class ArrowSpinnerComponent {
     "What's your favorite book?",
     "What's one thing you're afraid of?"
   ];
+  usedQuestions: { [key: string]: boolean } = {};
+  selectedQuestion: string = '';
+  selectedAsker: string = '';
+  selectedResponder: string = '';
+  questionHistory: { [key: string]: string[] } = {};
+  isHistoryLoaded: boolean = false;
+  recentResponders: number[] = [];
+  errorMessage: string = '';
+  initialized: boolean = false;
+
+  @ViewChild('arrow') arrowElement!: ElementRef;
 
   constructor(private firestore: AngularFirestore) { }
 
   ngOnInit() {
-    // Sync spin data from Firestore
+    // Subscribe to currentSpin document
     this.firestore.collection('spins').doc('currentSpin').valueChanges().subscribe((spin: any) => {
       if (spin) {
-        this.rotationDegrees = spin.rotationDegrees;
-        this.selectedAsker = spin.asker;
-        this.selectedResponder = spin.responder;
-        this.selectedQuestion = spin.question;
+        this.rotationDegrees = spin.rotationDegrees || 0;
+        this.selectedAsker = spin.asker || '';
+        this.selectedResponder = spin.responder || '';
+        this.selectedQuestion = spin.question || '';
+        if (!this.initialized) {
+          this.initialized = true;
+        }
       }
     });
 
-    // Sync names from Firestore and ensure they are in the correct order
+    // Subscribe to currentNames document
     this.firestore.collection('names').doc('currentNames').valueChanges().subscribe((data: any) => {
       if (data && data.names) {
-        // Ensure "Nag" is at 0 degrees, followed by other names in correct order
-        const correctOrder = ['Nag', 'Cabby', 'Shockei', 'Shoddy', 'Stalker', 'Astro', 'Tangi', 'Nickname'];
-        // Sorting the names based on correctOrder
-        this.names = correctOrder.filter(name => data.names.includes(name));
-        console.log('Correctly ordered names:', this.names);
+        this.names = data.names;
       }
     });
 
-    // Sync questions from Firestore
+    // Subscribe to currentQuestions document
     this.firestore.collection('questions').doc('currentQuestions').valueChanges().subscribe((data: any) => {
       if (data && data.questions) {
         this.questions = data.questions;
       }
     });
 
-    // Sync question history from Firestore
+    // Subscribe to questionHistory document
     this.firestore.collection('questionHistory').doc('history').valueChanges().subscribe((data: any) => {
       if (data && data.history) {
         this.questionHistory = data.history;
@@ -81,7 +78,7 @@ export class ArrowSpinnerComponent {
       }
     });
 
-    // Sync used questions from Firestore
+    // Initialize usedQuestions document
     this.firestore.collection('questions').doc('usedQuestions').get().subscribe((docSnapshot: any) => {
       if (docSnapshot.exists) {
         this.firestore.collection('questions').doc('usedQuestions').valueChanges().subscribe((data: any) => {
@@ -97,7 +94,9 @@ export class ArrowSpinnerComponent {
     });
   }
 
-
+  /**
+   * Adds a new question to the questions list and updates Firestore.
+   */
   addQuestion() {
     if (this.newQuestion.trim()) {
       this.questions.push(this.newQuestion);
@@ -110,6 +109,9 @@ export class ArrowSpinnerComponent {
     }
   }
 
+  /**
+   * Adds a new name to the names list and updates Firestore.
+   */
   addName() {
     if (this.newName) {
       const namesRef = this.firestore.collection('names').doc('currentNames');
@@ -121,6 +123,10 @@ export class ArrowSpinnerComponent {
     }
   }
 
+  /**
+   * Deletes a name from the names list based on its index and updates Firestore.
+   * @param index The index of the name to delete.
+   */
   deleteName(index: number) {
     const nameToDelete = this.names[index];
     const namesRef = this.firestore.collection('names').doc('currentNames');
@@ -129,180 +135,224 @@ export class ArrowSpinnerComponent {
     });
   }
 
+  /**
+   * Gets the number of remaining unused questions.
+   */
   get remainingQuestions(): number {
-    const remaining = this.questions.filter(q => !this.usedQuestions[q]).length;
-    return remaining;
+    return this.questions.filter(q => !this.usedQuestions[q]).length;
   }
 
-  // Method to rotate arrow to a specific degree manually
+  /**
+   * Rotates the spinner to a specified degree manually.
+   */
   rotateToDegree() {
-    const offset = 270; // Adjusting to make 0 degrees at the top
-    const adjustedDegrees = (this.manualDegree + offset) % 360; // Ensure the degree is within the 0-360 range
-
-    this.rotationDegrees = adjustedDegrees;
-
+    if (this.spinning) return;
+    const offset = 270;
+    const adjustedDegrees = (this.manualDegree + offset) % 360;
+    this.rotationDegrees += adjustedDegrees;
+    this.spinning = true;
     this.firestore.collection('spins').doc('currentSpin').set({
       rotationDegrees: this.rotationDegrees
     }).then(() => {
-      console.log('Manually set rotation to:', this.rotationDegrees);
-    }).catch((error) => {
-      console.error('Error setting rotation degree:', error);
+      this.spinning = false;
+    }).catch(() => {
+      this.errorMessage = 'Failed to rotate manually. Please try again.';
+      this.spinning = false;
     });
   }
 
+  /**
+   * Initiates the spinning process to select a responder and a question.
+   */
   spin() {
-    if (!this.isHistoryLoaded || this.spinning) return;  // Prevent multiple spins or if history isn't loaded
-
+    if (!this.isHistoryLoaded || this.spinning) return;
     if (!this.names || this.names.length <= 1) return;
-
-    this.spinning = true;  // Set the flag to indicate spinning is in progress
-
-    let randomIndexAsker: number;
-    let randomIndexResponder: number;
-
-    // Randomly select the responder, which is the person the arrow will land on
-    randomIndexResponder = Math.floor(Math.random() * this.names.length);
-
+    this.spinning = true;
+    this.selectedQuestion = '';
+    this.selectedResponder = '';
+    this.selectedAsker = '';
+    this.errorMessage = '';
+    let randomIndexResponder = Math.floor(Math.random() * this.names.length);
+    const selectedName = this.names[randomIndexResponder];
     const degreesPerName = 360 / this.names.length;
-    const offset = 0;  // No offset, since 0 degrees should be at the top now
-    const targetRotation = (degreesPerName * randomIndexResponder + offset) % 360;  // Calculate the correct degree
-
-    // Log the degree it's meant to go to and the name
-    console.log(`Arrow should land at degree: ${targetRotation} for name: ${this.names[randomIndexResponder]}`);
-
-    // Instantly set the rotation to the target rotation without spinning
-    this.rotationDegrees = targetRotation;
-
+    const targetRotation = (degreesPerName * randomIndexResponder) % 360;
+    const currentRotation = this.rotationDegrees % 360;
+    const targetRotationRelative = (targetRotation - currentRotation + 360) % 360;
+    const totalRotation = this.rotationDegrees + (360 * 5) + targetRotationRelative;
+    this.rotationDegrees = totalRotation;
     const spinRef = this.firestore.collection('spins').doc('currentSpin');
     spinRef.set({
       rotationDegrees: this.rotationDegrees,
+      responder: selectedName,
       asker: '',
-      responder: this.names[randomIndexResponder],  // Set the selected responder
       question: ''
-    }).then(() => {
-      // Select the responder after setting rotation
-      this.selectedResponder = this.names[randomIndexResponder];
+    }).catch(() => {
+      this.errorMessage = 'Failed to initiate spin. Please try again.';
+      this.spinning = false;
+    });
+  }
 
-      // Randomly select the asker (shouldn't be the same as the responder)
+  /**
+   * Handles actions to perform when spinning ends, such as selecting a question and deleting it.
+   */
+  onSpinEnd() {
+    if (!this.spinning) return;
+    try {
+      const selectedName = this.getSelectedName();
+      this.selectedResponder = selectedName;
+
+      // Select a random asker different from the responder
+      let randomIndexAsker: number;
       do {
         randomIndexAsker = Math.floor(Math.random() * this.names.length);
-      } while (randomIndexAsker === randomIndexResponder);
-
+      } while (this.names[randomIndexAsker] === selectedName);
       this.selectedAsker = this.names[randomIndexAsker];
-      this.previousResponder = randomIndexResponder;
-      this.recentResponders.push(randomIndexResponder);
+
+      // Update recent responders
+      this.recentResponders.push(this.names.indexOf(selectedName));
       if (this.recentResponders.length > 3) this.recentResponders.shift();
 
-      // Now select the question to ask
+      // Filter available questions
       const availableQuestions = this.questions.filter(q => !this.usedQuestions[q]);
       if (availableQuestions.length === 0) {
-        console.log("No available questions left.");
+        this.selectedQuestion = 'No questions available.';
+        this.spinning = false;
         return;
       }
 
-      this.selectedQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
-      console.log(`Selected question: ${this.selectedQuestion}`);
+      // Select a random question from available questions
+      const randomQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+      this.selectedQuestion = randomQuestion;
 
-      // Remove the selected question from available questions in Firestore
-      const questionsRef = this.firestore.collection('questions').doc('currentQuestions');
-      questionsRef.update({
-        questions: firebase.firestore.FieldValue.arrayRemove(this.selectedQuestion)
-      });
+      // Mark the question as used
+      this.usedQuestions[randomQuestion] = true;
 
-      // Update Firestore with the final spin details
+      // **Delete the used question**
+      this.deleteUsedQuestion(randomQuestion);
+
+      // Update Firestore with the new spin details
+      const spinRef = this.firestore.collection('spins').doc('currentSpin');
       spinRef.update({
         asker: this.selectedAsker,
         question: this.selectedQuestion
-      }).finally(() => {
-        this.spinning = false;  // Reset the spinning flag
+      }).then(() => {
+        this.spinning = false;
+      }).catch(() => {
+        this.errorMessage = 'Failed to update spin details. Please try again.';
+        this.spinning = false;
       });
-    });
+
+    } catch (error) {
+      console.error('Error in onSpinEnd:', error);
+      this.errorMessage = 'An unexpected error occurred. Please try again.';
+      this.spinning = false;
+    }
   }
 
+  /**
+   * Retrieves the selected name based on the current rotation degrees.
+   */
+  getSelectedName(): string {
+    const degreesPerName = 360 / this.names.length;
+    const finalRotation = this.rotationDegrees % 360;
+    const selectedIndex = Math.floor((finalRotation + degreesPerName / 2) / degreesPerName) % this.names.length;
+    return this.names[selectedIndex];
+  }
 
-
-
-
-
-
-  getDegreePosition(index: number, name: string) {
-    const totalNames = this.names.length;
-
-    // Calculate the angle for each name, starting from the top (0 degrees), rotating clockwise
-    const anglePerName = 360 / totalNames;
-
-    // Calculate the degree for this particular name, adjusting to make 0 degrees point to the top
-    const degree = (anglePerName * index) % 360;
-
-    console.log(`Placing name: ${name} at degree: ${degree}`);
-
-    const radius = 300;  // Radius from the center of the spinner to the name
-    const center = 250;  // The center of the circle
-    const textWidth = this.getTextWidth(name, '18px Arial');
-
-    const adjustedRadius = radius + (textWidth > 100 ? (textWidth - 100) / 2 : 0);
-
-    // Convert degrees to radians for positioning in a circle
-    const radian = (degree * Math.PI) / 180;
-
-    // Calculate the x and y position using polar coordinates
-    const x = Math.cos(radian) * adjustedRadius + center;
-    const y = Math.sin(radian) * adjustedRadius + center;
-
-    // Return the CSS positions for this name
+  /**
+   * Calculates the position of each name on the spinner based on its index.
+   * @param index The index of the name.
+   * @param name The name string.
+   */
+  getDegreePosition(index: number, name: string): { [key: string]: string } {
+    const total = this.names.length;
+    const angle = (360 / total) * index;
+    const radius = 309;
     return {
-      left: `${x}px`,
-      top: `${y}px`,
+      transform: `rotate(${angle}deg) translate(${radius}px) rotate(-${angle}deg)`
     };
   }
 
-
-
-
-
-
-
-
-
-
-
-
-  easeOutCubic(t: number): number {
-    return 1 - Math.pow(1 - t, 3);
-  }
-  getTextWidth(text: string, font: string): number {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    if (context) {
-      context.font = font;
-      return context.measureText(text).width;
-    }
-    return 0;
-  }
-
+  /**
+   * Marks all questions as read except one randomly selected question.
+   * Useful for managing question availability.
+   */
   markAllAsReadExceptOne() {
     if (this.questions.length <= 1) return;
-
     const randomIndex = Math.floor(Math.random() * this.questions.length);
     const questionToRemainUnread = this.questions[randomIndex];
     const updatedUsedQuestions: { [key: string]: boolean } = {};
-
     this.questions.forEach(question => {
       updatedUsedQuestions[question] = (question !== questionToRemainUnread);
     });
-
     this.usedQuestions = updatedUsedQuestions;
-
-    this.firestore.collection('questions').doc('usedQuestions').set(updatedUsedQuestions);
+    this.firestore.collection('questions').doc('usedQuestions').set(this.usedQuestions);
   }
 
+  /**
+   * Marks all questions as unread, resetting the usedQuestions mapping.
+   */
   markAllAsUnread() {
     const updatedUsedQuestions: { [key: string]: boolean } = {};
     this.questions.forEach(question => {
       updatedUsedQuestions[question] = false;
     });
-
     this.usedQuestions = updatedUsedQuestions;
     this.firestore.collection('questions').doc('usedQuestions').set(updatedUsedQuestions);
+  }
+
+  /**
+   * **New Method**
+   * Deletes a used question from the questions array and updates Firestore.
+   * @param question The question to be deleted.
+   */
+  deleteUsedQuestion(question: string) {
+    // Remove the question from the local questions array
+    this.questions = this.questions.filter(q => q !== question);
+
+    // Update Firestore by removing the question from `currentQuestions`
+    const questionsRef = this.firestore.collection('questions').doc('currentQuestions');
+    questionsRef.set(
+      { questions: firebase.firestore.FieldValue.arrayRemove(question) },
+      { merge: true }
+    ).then(() => {
+      console.log(`Question "${question}" has been deleted successfully.`);
+    }).catch(error => {
+      console.error('Error deleting the question:', error);
+      this.errorMessage = 'Failed to delete the used question. Please try again.';
+    });
+  }
+
+  /**
+   * **New Method (Optional)**
+   * Resets all questions to be available again.
+   * This method can be called based on application logic, such as after all questions have been used.
+   */
+  resetQuestions() {
+    const allQuestions = [
+      "What is your favorite hobby?",
+      "What's the most interesting place you've visited?",
+      "What is your dream job?",
+      "Who is your role model?",
+      "What is your favorite movie?",
+      "What is the weirdest food you've ever eaten?",
+      "If you could live anywhere in the world, where would it be?",
+      "What's one thing you couldn't live without?",
+      "What's your favorite book?",
+      "What's one thing you're afraid of?"
+    ];
+
+    // Update local state
+    this.questions = [...allQuestions];
+    this.usedQuestions = {};
+
+    // Update Firestore
+    const questionsRef = this.firestore.collection('questions').doc('currentQuestions');
+    questionsRef.set({ questions: allQuestions }, { merge: true });
+
+    const usedQuestionsRef = this.firestore.collection('questions').doc('usedQuestions');
+    usedQuestionsRef.set({ usedQuestions: {} }, { merge: true });
+
+    console.log('All questions have been reset.');
   }
 }

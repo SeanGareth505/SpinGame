@@ -1,33 +1,60 @@
 .main-container {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    /* Changed to flex-start to align items from the top */
     justify-content: space-between;
     height: 95.7vh;
     padding: 20px;
     background-color: #1d1d1d;
     color: #fff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    gap: 20px;
+    /* Added gap for spacing between sections */
+
+    @media (max-width: 1200px) {
+        flex-direction: column;
+        align-items: center;
+        overflow-y: auto;
+    }
 }
 
-.input-section {
-    width: 25%;
+.input-section,
+.question-section {
+    flex: 1;
+    min-width: 250px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     background-color: #f2f2f2;
-    padding: 30px;
+    padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     color: #333;
 }
 
-.input-container {
+.input-section {
+    min-width: 300px;
+    min-height: 90vh;
+}
+
+.question-section {
+    min-width: 500px;
+    min-height: 90vh;
+}
+
+.input-container,
+.question-input-section,
+.manual-rotation-section {
     display: flex;
     flex-direction: column;
     gap: 15px;
     align-items: center;
+    width: 100%;
+}
+
+label {
     font-size: 16px;
+    font-weight: bold;
 }
 
 input {
@@ -35,20 +62,10 @@ input {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    width: 200px;
+    width: 100%;
     background-color: #fff;
     color: #333;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.pointer {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform-origin: 50% 100%;
-    width: 50px;
-    height: 150px;
-    transition: transform 1s ease-out;
 }
 
 button {
@@ -60,10 +77,17 @@ button {
     border-radius: 5px;
     color: white;
     transition: background-color 0.3s ease;
+    width: 100%;
+    /* Make buttons full width within their containers */
 }
 
 button:hover {
     background-color: #ff4736;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
 }
 
 .delete-button {
@@ -72,8 +96,9 @@ button:hover {
     border: none;
     border-radius: 5px;
     padding: 5px 10px;
-    margin-left: 10px;
     cursor: pointer;
+    width: auto;
+    /* Adjust width to fit content */
 }
 
 .delete-button:hover {
@@ -105,20 +130,24 @@ button:hover {
 }
 
 .circle-container {
+    flex: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 70%;
     position: relative;
+    min-width: 300px;
+
+    @media (max-width: 1200px) {
+        width: 100%;
+    }
 }
 
 .spin-container {
-    position: absolute;
-    top: -100px;
+    margin-bottom: 20px;
+    width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
 }
 
 .spin-container button {
@@ -129,10 +158,31 @@ button:hover {
     border-radius: 5px;
     color: white;
     transition: background-color 0.3s ease;
+    width: 150px;
 }
 
 .spin-container button:hover {
     background-color: #ff4736;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .circle {
@@ -146,6 +196,16 @@ button:hover {
     align-items: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     background-color: #292929;
+
+    @media (max-width: 1200px) {
+        width: 300px;
+        height: 300px;
+    }
+
+    @media (max-width: 768px) {
+        width: 250px;
+        height: 250px;
+    }
 }
 
 .center-circle {
@@ -166,12 +226,15 @@ button:hover {
     width: 200px;
     height: 20px;
     background-color: #ff6f61;
-
     top: 50%;
     left: 50%;
     transform-origin: 0 50%;
-    transition: transform 1s ease-out;
+    /* Removed transition here */
     transform: translate(0, -50%);
+}
+
+.arrow.spinning {
+    transition: transform 5s ease-out;
 }
 
 .arrow::after {
@@ -206,15 +269,66 @@ button:hover {
 }
 
 .question-container {
-    margin-top: 30px;
-    text-align: center;
-    font-size: 22px;
+    /* Background and Text Styling */
     background-color: #333;
-    padding: 15px;
-    border-radius: 10px;
+    /* Dark background */
     color: #ff6f61;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    max-width: 700px;
+    /* Accent color for text */
+    padding: 20px;
+    padding-top: 0px;
+    /* Space inside the container */
+    border-radius: 10px;
+    /* Rounded corners */
+
+    /* Border and Shadow for Depth */
+    border: 2px solid #ff6f61;
+    /* Border matching accent color */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    /* Subtle shadow */
+
+    /* Text Alignment and Font Styling */
+    text-align: center;
+    /* Center the text */
+    font-size: 24px;
+    /* Larger font size for prominence */
+    font-weight: bold;
+    /* Bold text */
+
+    /* Margin for Spacing */
+    margin-top: 30px;
+    /* Space above the container */
+
+    /* Transition for Smooth Appearance */
+    transition: all 0.3s ease-in-out;
+}
+
+.question-container:hover {
+    /* Optional Hover Effect */
+    transform: scale(1.02);
+    /* Slightly enlarge on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    /* Enhanced shadow */
+}
+
+.question-title {
+    /* If using <h2> tag for title */
+    margin-bottom: 10px;
+    /* Space below the title */
+    font-size: 28px;
+    /* Larger font size for the title */
+    color: #fff;
+    /* White color for the title */
+}
+
+.question-text {
+    /* Existing styles can remain or be enhanced */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    font-size: 20px;
+    /* Slightly larger font for readability */
+    color: #ff6f61;
+    /* Maintain accent color */
 }
 
 .question-text {
@@ -226,4 +340,39 @@ button:hover {
 .question-container p {
     margin: 5px 0;
     font-weight: bold;
+}
+
+.error-message {
+    color: #ff4d4d;
+    background-color: #ffe6e6;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* New Styles for Delete All Questions Button */
+.delete-all-button {
+    background-color: #ff4d4d;
+    /* Red color to indicate a destructive action */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+    /* Space above the button */
+    width: 100%;
+    /* Make it full width within its container */
+}
+
+.delete-all-button:hover {
+    background-color: #ff1a1a;
+    /* Darker red on hover */
+}
+
+.delete-all-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
 }
