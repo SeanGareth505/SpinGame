@@ -25,7 +25,7 @@
           "options": {
             "outputPath": "dist/spin-arrow-app",
             "index": "src/index.html",
-            "main": "src/main.ts",  // Corrected from "browser" to "main"
+            "browser": "src/main.ts", 
             "polyfills": [
               "zone.js"
             ],
@@ -53,25 +53,17 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1MB",  // Increased from 500kB
-                  "maximumError": "1.5MB"    // Increased from 1MB
+                  "maximumWarning": "1mb",
+                  "maximumError": "1.5mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "5kB",   // Increased from 2kB
-                  "maximumError": "6kB"      // Increased from 4kB
+                  "maximumWarning": "2kB",
+                  "maximumError": "4kB"
                 }
               ],
               "outputHashing": "all",
-              "baseHref": "/SpinGame/",
-              "optimization": true,
-              "aot": true,
-              "extractLicenses": true,
-              "sourceMap": false,
-              "namedChunks": false,
-              "extractCss": true,
-              "vendorChunk": false,
-              "buildOptimizer": true
+              "baseHref": "/SpinGame/"
             },
             "development": {
               "optimization": false,
@@ -105,7 +97,6 @@
               "zone.js/testing"
             ],
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
             "assets": [
               {
                 "glob": "**/*",
@@ -117,19 +108,6 @@
               "src/styles.css"
             ],
             "scripts": []
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "tsconfig.app.json",
-              "tsconfig.spec.json",
-              "e2e/tsconfig.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
           }
         }
       }
