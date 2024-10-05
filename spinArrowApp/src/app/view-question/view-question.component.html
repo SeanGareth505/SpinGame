@@ -17,10 +17,6 @@
         <p class="question-text" *ngIf="selectedQuestion">{{ selectedQuestion }}</p>
         <p class="question-header" *ngIf="!selectedQuestion">Waiting for the spin to complete...</p>
 
-        <!-- Display the remaining question count -->
-        <p class="remaining-questions" *ngIf="remainingQuestions > 0">
-            Remaining questions for {{ selectedResponder }}: {{ remainingQuestions }}
-        </p>
         <p class="remaining-questions" *ngIf="remainingQuestions === 0 && selectedResponder">
             All questions have been asked for {{ selectedResponder }}!
         </p>
